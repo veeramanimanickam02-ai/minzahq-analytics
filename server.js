@@ -14,31 +14,20 @@ app.get("/", (req, res) => {
 app.get("/analytics", async (req, res) => {
   try {
     const response = await axios.get(
-      `https://openapi.etsy.com/v3/application/shops/${SHOP_ID}/listings/active`,
+      `https://openapi.etsy.com/v3/application/listings/active?shop_id=${SHOP_ID}`,
       {
         headers: {
-          "x-api-key": ETSY_API_KEY
+          "x-api-key": ETSY_API_KEY,
+          "Content-Type": "application/json"
         }
       }
     );
 
-    const listings = response.data.results;
-
-    const totalListings = listings.length;
-
-    const totalViews = listings.reduce((sum, item) => {
-      return sum + (item.views || 0);
-    }, 0);
-
-    const totalFavorites = listings.reduce((sum, item) => {
-      return sum + (item.num_favorers || 0);
-    }, 0);
+    const listings = response.data.results || [];
 
     res.json({
       status: "Success",
-      totalListings,
-      totalViews,
-      totalFavorites,
+      totalListings: listings.length,
       lastUpdated: new Date()
     });
 
@@ -47,8 +36,7 @@ app.get("/analytics", async (req, res) => {
 
     res.json({
       status: "Error",
-      lastUpdated: null,
-      data: null
+      error: error.response?.data || error.message
     });
   }
 });
